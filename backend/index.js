@@ -3,7 +3,10 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
+
 const authRoutes = require("./routes/authRoutes");
+const courseRoutes = require("./routes/courseRoutes");
+const enrollmentRoutes = require("./routes/enrollmentRoutes"); // ✅ only once
 
 dotenv.config();
 
@@ -21,7 +24,8 @@ app.use(cookieParser());
 
 // Routes
 app.use("/api/auth", authRoutes);
-
+app.use("/api/courses", courseRoutes); // ✅ register courses route here
+app.use("/api/enrollments", enrollmentRoutes);
 app.get("/", (req, res) => {
   res.send("CourseMaster API is running");
 });
