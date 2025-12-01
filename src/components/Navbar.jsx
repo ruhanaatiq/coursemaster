@@ -15,7 +15,7 @@ export default function Navbar() {
           CourseMaster
         </Link>
 
-        <div className="hidden md:flex gap-4 text-sm font-medium">
+        <div className="hidden md:flex gap-4 text-sm text-black font-medium">
           <Link href="/">Home</Link>
           <Link href="/courses">Courses</Link>
 
