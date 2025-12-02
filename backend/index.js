@@ -5,35 +5,34 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
 
+dotenv.config(); // ✅ load env BEFORE requiring anything that might use it
+
 // Route imports
 let authRoutes = require("./routes/authRoutes");
 let courseRoutes = require("./routes/courseRoutes");
 let enrollmentRoutes = require("./routes/enrollmentRoutes");
-
-dotenv.config();
+let adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
-// 🔎 Safety: if a route module exported { router } instead of router,
-// normalize it here so Express always gets a function.
-if (authRoutes && typeof authRoutes !== "function" && authRoutes.router) {
-  authRoutes = authRoutes.router;
-}
-if (courseRoutes && typeof courseRoutes !== "function" && courseRoutes.router) {
-  courseRoutes = courseRoutes.router;
-}
-if (
-  enrollmentRoutes &&
-  typeof enrollmentRoutes !== "function" &&
-  enrollmentRoutes.router
-) {
-  enrollmentRoutes = enrollmentRoutes.router;
-}
+// 🔎 Normalizer: if a route module exported { router } instead of the router itself
+const normalizeRoute = (mod) => {
+  if (!mod) return mod;
+  if (typeof mod === "function") return mod;
+  if (mod.router && typeof mod.router === "function") return mod.router;
+  return mod;
+};
+
+authRoutes = normalizeRoute(authRoutes);
+courseRoutes = normalizeRoute(courseRoutes);
+enrollmentRoutes = normalizeRoute(enrollmentRoutes);
+adminRoutes = normalizeRoute(adminRoutes);
 
 // Debug (optional – remove later if you want)
 console.log("typeof authRoutes:", typeof authRoutes);
 console.log("typeof courseRoutes:", typeof courseRoutes);
 console.log("typeof enrollmentRoutes:", typeof enrollmentRoutes);
+console.log("typeof adminRoutes:", typeof adminRoutes);
 
 // Middlewares
 app.use(
@@ -50,6 +49,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/enrollments", enrollmentRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.get("/", (req, res) => {
   res.send("CourseMaster API is running");
@@ -69,4 +69,4 @@ mongoose
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err.message);
     process.exit(1);
-  });
+  })

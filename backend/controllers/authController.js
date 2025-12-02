@@ -10,6 +10,14 @@ const generateToken = (user) =>
     { expiresIn: "7d" }
   );
 
+// Convert ADMIN_EMAILS env string into array
+const getAdminEmails = () => {
+  if (!process.env.ADMIN_EMAILS) return [];
+  return process.env.ADMIN_EMAILS.split(",").map((email) =>
+    email.trim().toLowerCase()
+  );
+};
+
 const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -25,11 +33,17 @@ const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Determine role
+    const adminEmails = getAdminEmails();
+    const assignedRole = adminEmails.includes(email.toLowerCase())
+      ? "admin"
+      : "student";
+
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
-      role: "student",
+      role: assignedRole,
     });
 
     const token = generateToken(user);
@@ -60,25 +74,26 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password, role } = req.body;
+    const { email, password, role } = req.body; // 👈 now also getting role
+
+    console.log("Login attempt:", { email, role });
 
     const user = await User.findOne({ email });
+
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+
     const isMatch = await user.matchPassword
-      ? await user.matchPassword(password)
-      : await bcrypt.compare(password, user.password);
+      ? user.matchPassword(password)
+      : bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    if (role && user.role !== role) {
-      return res.status(403).json({ message: "Unauthorized for this portal" });
-    }
-
+   
     const token = generateToken(user);
 
     res
@@ -95,7 +110,7 @@ const login = async (req, res) => {
           id: user._id,
           name: user.name,
           email: user.email,
-          role: user.role,
+          role: user.role, // 👈 single source of truth
         },
         token,
       });

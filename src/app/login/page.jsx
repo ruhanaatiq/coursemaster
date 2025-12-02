@@ -3,13 +3,13 @@
 import { useState } from "react";
 import axios from "axios";
 import { useDispatch } from "react-redux";
-import { setUser } from "../store/authSlice"; 
+import { setUser } from "../store/authSlice";
 import { useRouter } from "next/navigation";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
-// set once, not on every render
+// Set once globally
 axios.defaults.withCredentials = true;
 
 export default function LoginPage() {
@@ -19,7 +19,7 @@ export default function LoginPage() {
   const [form, setForm] = useState({
     email: "",
     password: "",
-    role: "student", // "student" | "admin"
+    role: "student", // default role
   });
 
   const [loading, setLoading] = useState(false);
@@ -36,24 +36,28 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await axios.post(`${API_BASE}/api/auth/login`, {
-        email: form.email,
-        password: form.password,
-        role: form.role,
-      });
+      const res = await axios.post(
+        `${API_BASE}/api/auth/login`,
+        {
+          email: form.email,
+          password: form.password,
+          role: form.role, // ✅ SEND ROLE
+        },
+        { withCredentials: true }
+      );
 
       const data = res.data;
+
       console.log("🔐 Login response:", data);
 
-      // Expecting backend to send: { user, token, message }
       if (!data || !data.user) {
         throw new Error("Invalid server response (no user returned)");
       }
 
-      // Your authSlice: setUser(state, action) { state.user = action.payload }
+      // Save user in Redux
       dispatch(setUser(data.user));
 
-      // redirect based on role
+      // Redirect based on backend role
       if (data.user.role === "admin") {
         router.push("/admin/dashboard");
       } else {
@@ -79,6 +83,7 @@ export default function LoginPage() {
         <h1 className="text-2xl font-semibold text-center mb-2">
           Login to CourseMaster
         </h1>
+
         <p className="text-center text-sm text-gray-500 mb-4">
           Choose portal type and enter your credentials.
         </p>
@@ -102,6 +107,7 @@ export default function LoginPage() {
               />
               <span>Student</span>
             </label>
+
             <label className="flex items-center gap-1 text-sm">
               <input
                 type="radio"
