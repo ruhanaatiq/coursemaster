@@ -1,12 +1,19 @@
 "use client";
 
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import Link from "next/link";
 import { useState } from "react";
+import { logout } from "@/app/store/authSlice"; 
 
 export default function Navbar() {
   const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+
   const [open, setOpen] = useState(false);
+
+  const handleLogout = () => {
+    dispatch(logout());
+  };
 
   return (
     <nav className="w-full bg-white shadow-md">
@@ -15,7 +22,8 @@ export default function Navbar() {
           CourseMaster
         </Link>
 
-        <div className="hidden md:flex gap-4 text-sm text-black font-medium">
+        {/* Desktop Menu */}
+        <div className="hidden md:flex gap-6 text-sm text-black font-medium items-center">
           <Link href="/">Home</Link>
           <Link href="/courses">Courses</Link>
 
@@ -26,10 +34,20 @@ export default function Navbar() {
             </>
           )}
 
-          {user && <Link href="/dashboard">Dashboard</Link>}
+          {user && (
+            <>
+              <Link href="/dashboard">Dashboard</Link>
+              <button
+                onClick={handleLogout}
+                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+              >
+                Logout
+              </button>
+            </>
+          )}
         </div>
 
-        {/* simple mobile toggle just to avoid unused state */}
+        {/* Mobile Toggle Button */}
         <button
           className="md:hidden text-sm border px-3 py-1 rounded"
           onClick={() => setOpen((prev) => !prev)}
@@ -38,12 +56,14 @@ export default function Navbar() {
         </button>
       </div>
 
+      {/* Mobile Menu */}
       {open && (
-        <div className="md:hidden px-6 pb-4 space-y-2 text-sm font-medium">
+        <div className="md:hidden px-6 pb-4 space-y-3 text-sm font-medium">
           <Link href="/">Home</Link>
           <br />
           <Link href="/courses">Courses</Link>
           <br />
+
           {!user && (
             <>
               <Link href="/login">Login</Link>
@@ -51,9 +71,17 @@ export default function Navbar() {
               <Link href="/register">Register</Link>
             </>
           )}
+
           {user && (
             <>
               <Link href="/dashboard">Dashboard</Link>
+              <br />
+              <button
+                onClick={handleLogout}
+                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+              >
+                Logout
+              </button>
             </>
           )}
         </div>

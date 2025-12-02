@@ -3,10 +3,14 @@
 import { useState } from "react";
 import axios from "axios";
 import { useDispatch } from "react-redux";
-import { setUser } from "../store/authSlice";
+import { setUser } from "../store/authSlice"; 
 import { useRouter } from "next/navigation";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+
+// set once, not on every render
+axios.defaults.withCredentials = true;
 
 export default function LoginPage() {
   const dispatch = useDispatch();
@@ -21,9 +25,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // keep cookies (JWT) when backend sets them
-  axios.defaults.withCredentials = true;
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -32,17 +33,24 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
     try {
-      setLoading(true);
-
-      const { data } = await axios.post(`${API_BASE}/api/auth/login`, {
+      const res = await axios.post(`${API_BASE}/api/auth/login`, {
         email: form.email,
         password: form.password,
-        role: form.role, // backend can enforce role-based login
+        role: form.role,
       });
 
-      // backend should return: { user, token, message }
+      const data = res.data;
+      console.log("🔐 Login response:", data);
+
+      // Expecting backend to send: { user, token, message }
+      if (!data || !data.user) {
+        throw new Error("Invalid server response (no user returned)");
+      }
+
+      // Your authSlice: setUser(state, action) { state.user = action.payload }
       dispatch(setUser(data.user));
 
       // redirect based on role
@@ -52,10 +60,14 @@ export default function LoginPage() {
         router.push("/dashboard");
       }
     } catch (err) {
-      console.error(err);
-      setError(
-        err?.response?.data?.message || "Login failed. Please check your credentials."
-      );
+      console.error("❌ Login error:", err);
+
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Login failed. Please check your credentials.";
+
+      setError(msg);
     } finally {
       setLoading(false);
     }
