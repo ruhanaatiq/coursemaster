@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -24,12 +25,9 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // 🔒 Role-based guard
+  // 🔒 Role-based guard (don’t instantly send to login)
   useEffect(() => {
-    if (!user) {
-      router.push("/login");
-      return;
-    }
+    if (!user) return; // wait until we know who the user is
 
     if (user.role !== "admin") {
       // if a student somehow lands here, send them to student dashboard
@@ -46,7 +44,9 @@ export default function AdminDashboardPage() {
         setLoading(true);
         setError("");
 
-        const res = await axios.get(`${API_BASE}/api/admin/stats`);
+        const res = await axios.get(`${API_BASE}/api/admin/stats`, {
+          withCredentials: true,
+        });
         const data = res.data || {};
 
         setStats({
@@ -66,8 +66,17 @@ export default function AdminDashboardPage() {
     fetchStats();
   }, [user]);
 
-  // while redirecting / no user, don't flash anything
-  if (!user || user.role !== "admin") {
+  // While user is not yet in Redux, show a simple loading state
+  if (!user) {
+    return (
+      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center">
+        <p className="text-sm text-slate-500">Checking permissions...</p>
+      </div>
+    );
+  }
+
+  // If user is non-admin, we’re already redirecting; don’t render dashboard
+  if (user.role !== "admin") {
     return null;
   }
 
@@ -88,7 +97,8 @@ export default function AdminDashboardPage() {
 
           {/* Small admin info pill */}
           <div className="px-3 py-1 rounded-full bg-slate-900 text-white text-xs md:text-sm">
-            Admin accounts: <span className="font-semibold">{stats.totalAdmins}</span>
+            Admin accounts:{" "}
+            <span className="font-semibold">{stats.totalAdmins}</span>
           </div>
         </div>
 
@@ -151,18 +161,18 @@ export default function AdminDashboardPage() {
               Create new courses, update details, and manage published content.
             </p>
             <div className="flex flex-wrap gap-2">
-              <a
+              <Link
                 href="/admin/courses"
                 className="px-3 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700"
               >
                 View All Courses
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/admin/courses/new"
                 className="px-3 py-1.5 text-sm rounded border border-blue-600 text-blue-600 hover:bg-blue-50"
               >
                 Add New Course
-              </a>
+              </Link>
             </div>
           </div>
 
