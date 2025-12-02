@@ -1,12 +1,18 @@
+// backend/middleware/authMiddleware.js
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-exports.protect = async (req, res, next) => {
+const protect = async (req, res, next) => {
   try {
-    let token = req.cookies?.token;
+    let token;
 
-    // (Optional fallback: Authorization header)
-    if (!token && req.headers.authorization?.startsWith("Bearer ")) {
+    // 1) Try cookie (you’re setting "token" cookie in authController)
+    if (req.cookies && req.cookies.token) {
+      token = req.cookies.token;
+    }
+
+    // 2) Fallback: Authorization: Bearer <token>
+    if (!token && req.headers.authorization?.startsWith("Bearer")) {
       token = req.headers.authorization.split(" ")[1];
     }
 
@@ -14,17 +20,22 @@ exports.protect = async (req, res, next) => {
       return res.status(401).json({ message: "Not authorized, no token" });
     }
 
+    // verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    // attach user to req (without password)
     const user = await User.findById(decoded.id).select("-password");
+
     if (!user) {
-      return res.status(401).json({ message: "User no longer exists" });
+      return res.status(401).json({ message: "User not found" });
     }
 
     req.user = user;
     next();
   } catch (err) {
-    console.error("Auth error:", err);
-    return res.status(401).json({ message: "Not authorized" });
+    console.error("Auth middleware error:", err);
+    return res.status(401).json({ message: "Not authorized, token failed" });
   }
 };
+
+module.exports = { protect };  
