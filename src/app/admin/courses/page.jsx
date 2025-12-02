@@ -111,7 +111,7 @@ export default function CoursesPage() {
 
             {/* Category */}
             <div className="w-full md:w-48">
-              <label className="block text-xs font-medium text-slate-500 mb-1">
+              <label className="block text-xs font-medium text-black mb-1">
                 Category
               </label>
               <select
@@ -120,7 +120,7 @@ export default function CoursesPage() {
                   setCategory(e.target.value);
                   setPage(1);
                 }}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full text-black  border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="all">All</option>
                 <option value="web-development">Web Development</option>
@@ -141,7 +141,7 @@ export default function CoursesPage() {
                   setSort(e.target.value);
                   setPage(1);
                 }}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full text-black border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="newest">Newest</option>
                 <option value="priceLow">Price: Low to High</option>
