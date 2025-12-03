@@ -1,32 +1,73 @@
-// src/app/courses/[id]/page.jsx
+"use client";
 
-import EnrollButton from "./Enrollbutton";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import axios from "axios";
+import EnrollButton from "./Enrollbutton"; // or "./EnrollButton" if that is the file name
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
-export default async function CourseDetailsPage({ params }) {
-  const { id } = params;
+axios.defaults.withCredentials = true;
 
-  const res = await fetch(`${API_BASE}/api/courses/${id}`, {
-    cache: "no-store",
-  });
+export default function CourseDetailsPage() {
+  // 🔹 Get dynamic route param from Next
+  const { id } = useParams(); // id will be the string from [id]
 
-  if (!res.ok) {
+  const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!id) return; // still not ready
+
+    const fetchCourse = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const res = await axios.get(`${API_BASE}/api/courses/${id}`);
+        console.log("🔍 Course details response:", res.data);
+
+        setCourse(res.data.course);
+      } catch (err) {
+        console.error("❌ Course details error:", err);
+        const msg =
+          err?.response?.data?.message ||
+          `Failed to load course details. Status: ${
+            err?.response?.status || "unknown"
+          }`;
+        setError(msg);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourse();
+  }, [id]);
+
+  if (!id) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-sm text-red-500">Failed to load course details.</p>
+        <p className="text-sm text-slate-500">Preparing course details...</p>
       </div>
     );
   }
 
-  const data = await res.json();
-  const course = data.course;
-
-  if (!course) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-sm text-slate-500">Course not found.</p>
+        <p className="text-sm text-slate-500">Loading course details...</p>
+      </div>
+    );
+  }
+
+  if (error || !course) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-sm text-red-500">
+          {error || "Failed to load course details."}
+        </p>
       </div>
     );
   }
@@ -77,6 +118,7 @@ export default async function CourseDetailsPage({ params }) {
             {course.syllabus && course.syllabus.length > 0 ? (
               <ol className="space-y-2 text-sm text-slate-700">
                 {course.syllabus
+                  .slice()
                   .sort((a, b) => (a.order || 0) - (b.order || 0))
                   .map((lesson, idx) => (
                     <li

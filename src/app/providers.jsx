@@ -2,6 +2,12 @@
 
 import { Provider } from "react-redux";
 import { store } from "./store/store";
-export function Providers({ children }) {
-  return <Provider store={store}>{children}</Provider>;
+import AuthInitializer from "./AuthInitializer";
+
+export default function Providers({ children }) {
+  return (
+    <Provider store={store}>
+      <AuthInitializer>{children}</AuthInitializer>
+    </Provider>
+  );
 }

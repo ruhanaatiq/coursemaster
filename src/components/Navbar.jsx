@@ -3,7 +3,7 @@
 import { useSelector, useDispatch } from "react-redux";
 import Link from "next/link";
 import { useState } from "react";
-import { logout } from "@/app/store/authSlice"; 
+import { logout } from "@/app/store/authSlice";
 
 export default function Navbar() {
   const { user } = useSelector((state) => state.auth);
@@ -14,6 +14,10 @@ export default function Navbar() {
   const handleLogout = () => {
     dispatch(logout());
   };
+
+  // Dynamically choose dashboard route
+  const dashboardRoute =
+    user?.role === "admin" ? "/admin/dashboard" : "/dashboard";
 
   return (
     <nav className="w-full bg-white shadow-md">
@@ -36,7 +40,9 @@ export default function Navbar() {
 
           {user && (
             <>
-              <Link href="/dashboard">Dashboard</Link>
+              {/* 👇 Fixed Dashboard Link */}
+              <Link href={dashboardRoute}>Dashboard</Link>
+
               <button
                 onClick={handleLogout}
                 className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
@@ -74,7 +80,8 @@ export default function Navbar() {
 
           {user && (
             <>
-              <Link href="/dashboard">Dashboard</Link>
+              {/* 👇 Mobile Dashboard Fix */}
+              <Link href={dashboardRoute}>Dashboard</Link>
               <br />
               <button
                 onClick={handleLogout}

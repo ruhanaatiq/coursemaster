@@ -13,7 +13,7 @@ const API_BASE =
 axios.defaults.withCredentials = true;
 
 export default function AdminDashboardPage() {
-  const { user } = useSelector((state) => state.auth);
+  const { user, checkingAuth } = useSelector((state) => state.auth);
   const router = useRouter();
 
   const [stats, setStats] = useState({
@@ -25,18 +25,25 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // 🔒 Role-based guard (don’t instantly send to login)
+  // 🔒 Role-based guard – but WAIT until auth check is done
   useEffect(() => {
-    if (!user) return; // wait until we know who the user is
+    if (checkingAuth) return; // still checking JWT / localStorage
+
+    if (!user) {
+      // no user after check → send to login
+      router.push("/login");
+      return;
+    }
 
     if (user.role !== "admin") {
-      // if a student somehow lands here, send them to student dashboard
+      // logged in but not admin → student dashboard
       router.push("/dashboard");
     }
-  }, [user, router]);
+  }, [user, checkingAuth, router]);
 
   // Fetch admin stats from /api/admin/stats
   useEffect(() => {
+    if (checkingAuth) return;             // don't call API until auth known
     if (!user || user.role !== "admin") return;
 
     const fetchStats = async () => {
@@ -64,10 +71,10 @@ export default function AdminDashboardPage() {
     };
 
     fetchStats();
-  }, [user]);
+  }, [user, checkingAuth]);
 
-  // While user is not yet in Redux, show a simple loading state
-  if (!user) {
+  // While we are still checking auth globally
+  if (checkingAuth) {
     return (
       <div className="min-h-[calc(100vh-64px)] flex items-center justify-center">
         <p className="text-sm text-slate-500">Checking permissions...</p>
@@ -75,8 +82,8 @@ export default function AdminDashboardPage() {
     );
   }
 
-  // If user is non-admin, we’re already redirecting; don’t render dashboard
-  if (user.role !== "admin") {
+  // After check: if not admin, component shows nothing (redirect is already in effect)
+  if (!user || user.role !== "admin") {
     return null;
   }
 

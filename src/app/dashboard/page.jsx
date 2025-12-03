@@ -9,22 +9,39 @@ import Link from "next/link";
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
+// set once globally
+axios.defaults.withCredentials = true;
+
 export default function StudentDashboardPage() {
-  const { user } = useSelector((state) => state.auth);
+  const { user, checkingAuth } = useSelector((state) => state.auth);
   const router = useRouter();
 
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  axios.defaults.withCredentials = true;
-
+  // 🔒 Auth guard – but WAIT until checkingAuth is false
   useEffect(() => {
+    if (checkingAuth) return; // still checking cookie / localStorage
+
+    // not logged in → login
     if (!user) {
-      // not logged in -> go to login
       router.push("/login");
       return;
     }
+
+    // ✅ if ADMIN somehow hits /dashboard → send to admin dashboard
+    if (user.role === "admin") {
+      router.push("/admin/dashboard");
+      return;
+    }
+  }, [user, checkingAuth, router]);
+
+  // Fetch enrollments once we know user is a valid STUDENT
+  useEffect(() => {
+    if (checkingAuth) return;
+    if (!user) return;
+    if (user.role === "admin") return; // don't run for admins
 
     const fetchEnrollments = async () => {
       try {
@@ -32,7 +49,7 @@ export default function StudentDashboardPage() {
         setError("");
 
         const { data } = await axios.get(
-          `${API_BASE}/api/enrollments/my`,
+          `${API_BASE}/api/enrollments/me`,
           { withCredentials: true }
         );
 
@@ -49,15 +66,21 @@ export default function StudentDashboardPage() {
     };
 
     fetchEnrollments();
-  }, [user, router]);
+  }, [user, checkingAuth]);
 
-  if (!user) {
-    // brief placeholder while redirecting
+  // While global auth still being checked
+  if (checkingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-sm text-slate-500">Redirecting to login...</p>
+        <p className="text-sm text-slate-500">Checking your account...</p>
       </div>
     );
+  }
+
+  // After check: if not logged in, redirect is already happening
+  if (!user || user.role === "admin") {
+    // admin is being redirected in the first effect
+    return null;
   }
 
   const totalCourses = enrollments.length;
