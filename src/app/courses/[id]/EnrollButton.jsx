@@ -1,3 +1,4 @@
+// src/app/courses/[id]/Enrollbutton.jsx
 "use client";
 
 import { useSelector } from "react-redux";
@@ -7,20 +8,16 @@ import axios from "axios";
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
-axios.defaults.withCredentials = true;
-
 export default function EnrollButton({ courseId }) {
   const { user } = useSelector((state) => state.auth);
   const router = useRouter();
 
   const handleEnroll = async () => {
     if (!user) {
-      // User not logged in → go to login page, then come back to course
       router.push(`/login?redirect=/courses/${courseId}`);
       return;
     }
 
-    // If user IS logged in → enroll
     try {
       const res = await axios.post(
         `${API_BASE}/api/enrollments`,
@@ -28,10 +25,17 @@ export default function EnrollButton({ courseId }) {
         { withCredentials: true }
       );
 
-      router.push("/dashboard"); // or course content page
+      console.log("Enroll response:", res.data);
+
+      // Later you can redirect to a "Payment" page if paymentStatus === "pending".
+      alert(res.data.message || "Enrolled successfully!");
+
+      router.push("/dashboard");
     } catch (err) {
-      console.error("Enroll error:", err);
-      alert("Enrollment failed. Please try again.");
+      console.error(err);
+      const msg =
+        err?.response?.data?.message || "Failed to enroll. Please try again.";
+      alert(msg);
     }
   };
 

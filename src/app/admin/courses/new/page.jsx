@@ -19,11 +19,20 @@ export default function AdminNewCoursePage() {
     title: "",
     description: "",
     instructor: "",
-    syllabus: "",
     price: "",
     category: "web-development",
     tags: "", // comma separated
   });
+
+  // 🔹 New: lessons builder
+  const [lessons, setLessons] = useState([
+    {
+      title: "",
+      videoUrl: "",
+      description: "",
+      resourcesText: "", // multiline string: one link per line
+    },
+  ]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -45,6 +54,36 @@ export default function AdminNewCoursePage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // 🔹 Handle lesson field change
+  const handleLessonChange = (index, field, value) => {
+    setLessons((prev) => {
+      const copy = [...prev];
+      copy[index] = { ...copy[index], [field]: value };
+      return copy;
+    });
+  };
+
+  const handleAddLesson = () => {
+    setLessons((prev) => [
+      ...prev,
+      { title: "", videoUrl: "", description: "", resourcesText: "" },
+    ]);
+  };
+
+  const handleRemoveLesson = (index) => {
+    setLessons((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // helper: guess resource type from URL
+  const inferResourceType = (url) => {
+    const lower = url.toLowerCase();
+    if (lower.includes("youtube.com") || lower.includes("youtu.be") || lower.includes("vimeo.com")) {
+      return "video";
+    }
+    if (lower.includes("docs.google.com")) return "docs";
+    return "article";
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -52,13 +91,43 @@ export default function AdminNewCoursePage() {
     setLoading(true);
 
     try {
+      // 🔹 Build tags array
+      const tagsArray =
+        form.tags.trim() === ""
+          ? []
+          : form.tags.split(",").map((t) => t.trim());
+
+      // 🔹 Build syllabus array from lessons state
+      const syllabus = lessons
+        .filter((l) => l.title.trim() !== "") // ignore empty lessons
+        .map((l, index) => {
+          const resources = (l.resourcesText || "")
+            .split("\n")
+            .map((line) => line.trim())
+            .filter(Boolean)
+            .map((url, idx) => ({
+              type: inferResourceType(url),
+              label: `Resource ${idx + 1}`, // you can improve this later
+              url,
+            }));
+
+          return {
+            title: l.title.trim(),
+            videoUrl: l.videoUrl.trim() || undefined,
+            description: l.description.trim() || "",
+            order: index + 1,
+            resources,
+          };
+        });
+
       const payload = {
-        ...form,
+        title: form.title.trim(),
+        description: form.description.trim(),
+        instructor: form.instructor.trim(),
         price: Number(form.price) || 0,
-        tags:
-          form.tags.trim() === ""
-            ? []
-            : form.tags.split(",").map((t) => t.trim()),
+        category: form.category,
+        tags: tagsArray,
+        syllabus, // 👈 array that matches lessonSchema
       };
 
       const { data } = await axios.post(`${API_BASE}/api/courses`, payload, {
@@ -73,11 +142,18 @@ export default function AdminNewCoursePage() {
         title: "",
         description: "",
         instructor: "",
-        syllabus: "",
         price: "",
         category: "web-development",
         tags: "",
       });
+      setLessons([
+        {
+          title: "",
+          videoUrl: "",
+          description: "",
+          resourcesText: "",
+        },
+      ]);
 
       // optional: redirect to course list after a short delay
       // setTimeout(() => router.push("/courses"), 800);
@@ -116,117 +192,225 @@ export default function AdminNewCoursePage() {
           </p>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Title */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Title</label>
-            <input
-              type="text"
-              name="title"
-              value={form.title}
-              onChange={handleChange}
-              required
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g. React for Beginners"
-            />
-          </div>
-
-          {/* Instructor */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Instructor
-            </label>
-            <input
-              type="text"
-              name="instructor"
-              value={form.instructor}
-              onChange={handleChange}
-              required
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g. Ruhana Atiq"
-            />
-          </div>
-
-          {/* Category + Price */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Basic info */}
+          <div className="space-y-4">
+            {/* Title */}
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Category
-              </label>
-              <select
-                name="category"
-                value={form.category}
+              <label className="block text-sm font-medium mb-1">Title</label>
+              <input
+                type="text"
+                name="title"
+                value={form.title}
                 onChange={handleChange}
+                required
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="web-development">Web Development</option>
-                <option value="programming">Programming</option>
-                <option value="design">Design</option>
-                <option value="data-science">Data Science</option>
-                <option value="general">General</option>
-              </select>
+                placeholder="e.g. React for Beginners"
+              />
             </div>
 
+            {/* Instructor */}
             <div>
               <label className="block text-sm font-medium mb-1">
-                Price (USD)
+                Instructor
               </label>
               <input
-                type="number"
-                name="price"
-                value={form.price}
+                type="text"
+                name="instructor"
+                value={form.instructor}
                 onChange={handleChange}
-                min="0"
+                required
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g. 49"
+                placeholder="e.g. Ruhana Atiq"
+              />
+            </div>
+
+            {/* Category + Price */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Category
+                </label>
+                <select
+                  name="category"
+                  value={form.category}
+                  onChange={handleChange}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="web-development">Web Development</option>
+                  <option value="programming">Programming</option>
+                  <option value="design">Design</option>
+                  <option value="data-science">Data Science</option>
+                  <option value="general">General</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Price (USD)
+                </label>
+                <input
+                  type="number"
+                  name="price"
+                  value={form.price}
+                  onChange={handleChange}
+                  min="0"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g. 49"
+                />
+              </div>
+            </div>
+
+            {/* Tags */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Tags (comma separated)
+              </label>
+              <input
+                type="text"
+                name="tags"
+                value={form.tags}
+                onChange={handleChange}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="react, javascript, frontend"
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Description
+              </label>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                required
+                rows={3}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Write a short summary of the course..."
               />
             </div>
           </div>
 
-          {/* Tags */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Tags (comma separated)
-            </label>
-            <input
-              type="text"
-              name="tags"
-              value={form.tags}
-              onChange={handleChange}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="react, javascript, frontend"
-            />
-          </div>
+          {/* Lessons / Syllabus */}
+          <div className="border-t border-slate-100 pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-sm font-semibold text-slate-900">
+                Lessons (Syllabus)
+              </h2>
+              <button
+                type="button"
+                onClick={handleAddLesson}
+                className="text-xs px-3 py-1 rounded-lg bg-slate-900 text-white hover:bg-slate-800"
+              >
+                + Add Lesson
+              </button>
+            </div>
+            <p className="text-xs text-slate-500 mb-3">
+              For each lesson you can attach a main video URL and multiple extra
+              resources like articles or documentation links.
+            </p>
 
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Description
-            </label>
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              required
-              rows={3}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Write a short summary of the course..."
-            />
-          </div>
+            <div className="space-y-4">
+              {lessons.map((lesson, index) => (
+                <div
+                  key={index}
+                  className="border border-slate-200 rounded-lg p-3 bg-slate-50"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-semibold text-slate-700">
+                      Lesson {index + 1}
+                    </p>
+                    {lessons.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveLesson(index)}
+                        className="text-[11px] text-red-500 hover:underline"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
 
-          {/* Syllabus */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Syllabus / Topics
-            </label>
-            <textarea
-              name="syllabus"
-              value={form.syllabus}
-              onChange={handleChange}
-              rows={4}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="List the main modules or topics covered..."
-            />
+                  <div className="space-y-2">
+                    <div>
+                      <label className="block text-[11px] font-medium mb-1">
+                        Lesson Title *
+                      </label>
+                      <input
+                        type="text"
+                        value={lesson.title}
+                        onChange={(e) =>
+                          handleLessonChange(index, "title", e.target.value)
+                        }
+                        className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="e.g. Introduction to JSX"
+                        required={index === 0}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-medium mb-1">
+                        Video URL (YouTube, Vimeo, etc.)
+                      </label>
+                      <input
+                        type="text"
+                        value={lesson.videoUrl}
+                        onChange={(e) =>
+                          handleLessonChange(index, "videoUrl", e.target.value)
+                        }
+                        className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="https://youtube.com/..."
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-medium mb-1">
+                        Lesson Description (optional)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={lesson.description}
+                        onChange={(e) =>
+                          handleLessonChange(
+                            index,
+                            "description",
+                            e.target.value
+                          )
+                        }
+                        className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="What will students learn in this lesson?"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-medium mb-1">
+                        Extra Resources (one URL per line)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={lesson.resourcesText}
+                        onChange={(e) =>
+                          handleLessonChange(
+                            index,
+                            "resourcesText",
+                            e.target.value
+                          )
+                        }
+                        className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder={`https://react.dev/learn/writing-markup-with-jsx
+https://blog.example.com/great-article`}
+                      />
+                      <p className="mt-1 text-[10px] text-slate-400">
+                        Each line becomes a clickable resource under this
+                        lesson. Type both article and YouTube links here.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <button

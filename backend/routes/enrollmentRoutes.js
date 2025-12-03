@@ -1,3 +1,4 @@
+// backend/routes/enrollmentRoutes.js
 const express = require("express");
 const Enrollment = require("../models/Enrollment");
 const Course = require("../models/Course");
@@ -8,14 +9,16 @@ const router = express.Router();
 /**
  * POST /api/enrollments
  * Body: { courseId }
- * User must be logged in (student)
+ * Creates (or returns) an enrollment for the logged in user.
+ * For now we'll mark payment as "paid" immediately. Later you can switch to "pending" + Stripe.
  */
 router.post("/", protect, async (req, res) => {
   try {
+    const userId = req.user._id;
     const { courseId } = req.body;
 
     if (!courseId) {
-      return res.status(400).json({ message: "Course ID is required" });
+      return res.status(400).json({ message: "courseId is required" });
     }
 
     const course = await Course.findById(courseId);
@@ -23,49 +26,169 @@ router.post("/", protect, async (req, res) => {
       return res.status(404).json({ message: "Course not found" });
     }
 
-    // prevent duplicate enrollment
-    const existing = await Enrollment.findOne({
-      user: req.user._id,
-      course: courseId,
-    });
+    // If already enrolled, just return it
+    let enrollment = await Enrollment.findOne({ user: userId, course: courseId })
+      .populate("course");
 
-    if (existing) {
-      return res
-        .status(409)
-        .json({ message: "You are already enrolled in this course" });
+    if (enrollment) {
+      return res.json({
+        message: "Already enrolled in this course",
+        enrollment,
+      });
     }
 
-    const enrollment = await Enrollment.create({
-      user: req.user._id,
+    // For now: assume instant payment success
+    enrollment = await Enrollment.create({
+      user: userId,
       course: courseId,
       status: "enrolled",
       progress: 0,
+      // if your schema doesn’t have these yet, either add them or remove these two lines
+      paymentStatus: course.price > 0 ? "paid" : "paid",
+      totalPrice: course.price || 0,
     });
 
-    res.status(201).json({
-      message: "Enrollment successful",
-      enrollment,
+    const populated = await enrollment.populate("course");
+
+    return res.status(201).json({
+      message: "Enrollment created",
+      enrollment: populated,
     });
   } catch (err) {
-    console.error("Enroll error:", err);
-    res.status(500).json({ message: "Failed to enroll" });
+    console.error("❌ Enroll error:", err);
+    return res.status(500).json({
+      message: err.message || "Failed to enroll",
+    });
   }
 });
 
 /**
- * GET /api/enrollments/my
- * Get logged-in student's enrollments
+ * 👉 NEW: GET /api/enrollments/by-course/:courseId
+ * Used by the lesson page to load "my enrollment + course" for a specific course.
  */
-router.get("/my", protect, async (req, res) => {
+router.get("/by-course/:courseId", protect, async (req, res) => {
   try {
-    const enrollments = await Enrollment.find({ user: req.user._id })
+    const userId = req.user._id;
+    const { courseId } = req.params;
+
+    if (!courseId) {
+      return res.status(400).json({ message: "courseId is required" });
+    }
+
+    // Optional safety: ensure course exists
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    const enrollment = await Enrollment.findOne({
+      user: userId,
+      course: courseId,
+    }).populate("course");
+
+    if (!enrollment) {
+      return res.status(404).json({
+        message: "You are not enrolled in this course yet",
+      });
+    }
+
+    return res.json({ enrollment });
+  } catch (err) {
+    console.error("❌ Get enrollment by course error:", err);
+    return res.status(500).json({
+      message: err.message || "Failed to load enrollment",
+    });
+  }
+});
+
+/**
+ * GET /api/enrollments/me
+ * Get all enrollments for logged in user (student dashboard).
+ */
+router.get("/me", protect, async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const enrollments = await Enrollment.find({ user: userId })
       .populate("course")
       .sort({ createdAt: -1 });
 
-    res.json({ enrollments });
+    return res.json({ enrollments });
   } catch (err) {
-    console.error("Get my enrollments error:", err);
-    res.status(500).json({ message: "Failed to fetch enrollments" });
+    console.error("❌ Get my enrollments error:", err);
+    return res.status(500).json({
+      message: err.message || "Failed to load enrollments",
+    });
+  }
+});
+
+/**
+ * PATCH /api/enrollments/:id/progress
+ * Body: { progress }
+ * Updates progress & auto-mark as completed if >= 100 (or 90).
+ */
+router.patch("/:id/progress", protect, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { id } = req.params;
+    let { progress } = req.body;
+
+    progress = Number(progress);
+    if (Number.isNaN(progress) || progress < 0 || progress > 100) {
+      return res
+        .status(400)
+        .json({ message: "Progress must be between 0 and 100" });
+    }
+
+    const enrollment = await Enrollment.findOne({
+      _id: id,
+      user: userId,
+    }).populate("course");
+
+    if (!enrollment) {
+      return res.status(404).json({ message: "Enrollment not found" });
+    }
+
+    enrollment.progress = progress;
+
+    if (progress >= 100) {
+      enrollment.status = "completed";
+    }
+
+    await enrollment.save();
+
+    res.json({
+      message: "Progress updated",
+      enrollment,
+    });
+  } catch (err) {
+    console.error("❌ Update progress error:", err);
+    return res.status(500).json({
+      message: err.message || "Failed to update progress",
+    });
+  }
+});
+
+/**
+ * PATCH /api/enrollments/:id/pay
+ * (Optional) Manual endpoint to mark as paid – for now this simulates a payment success.
+ */
+router.patch("/:id/pay", protect, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const enrollment = await Enrollment.findById(id).populate("course");
+    if (!enrollment) {
+      return res.status(404).json({ message: "Enrollment not found" });
+    }
+
+    enrollment.paymentStatus = "paid";
+    await enrollment.save();
+
+    res.json({ message: "Payment marked as paid", enrollment });
+  } catch (err) {
+    console.error("❌ Mark paid error:", err);
+    res.status(500).json({ message: err.message || "Failed to mark paid" });
   }
 });
 

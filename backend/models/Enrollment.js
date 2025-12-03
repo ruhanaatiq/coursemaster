@@ -14,17 +14,32 @@ const enrollmentSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["enrolled", "completed","cancelled"],
-      default: "active",
+      enum: ["enrolled", "completed"],
+      default: "enrolled",
     },
     progress: {
       type: Number, // 0–100
       default: 0,
     },
+
+    // 🔹 Payment-related fields
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "paid"],
+      default: "pending",
+    },
+    totalPrice: {
+      type: Number,
+      default: 0,
+    },
+    transactionId: {
+      type: String, // later you can save Stripe paymentIntent id here
+    },
   },
   { timestamps: true }
 );
 
+// avoid duplicate enrollment for same user+course
 enrollmentSchema.index({ user: 1, course: 1 }, { unique: true });
 
 module.exports = mongoose.model("Enrollment", enrollmentSchema);
