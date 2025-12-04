@@ -13,7 +13,14 @@ const resourceSchema = new mongoose.Schema(
   },
   { _id: false }
 );
-
+const batchSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },        
+    startDate: { type: Date, required: true },     
+    endDate: { type: Date },                       
+  },
+  { _id: true } 
+);
 const lessonSchema = new mongoose.Schema({
   title: { type: String, required: true },
   videoUrl: { type: String },

@@ -30,20 +30,18 @@ export default function AdminDashboardPage() {
     if (checkingAuth) return; // still checking JWT / localStorage
 
     if (!user) {
-      // no user after check → send to login
       router.push("/login");
       return;
     }
 
     if (user.role !== "admin") {
-      // logged in but not admin → student dashboard
       router.push("/dashboard");
     }
   }, [user, checkingAuth, router]);
 
   // Fetch admin stats from /api/admin/stats
   useEffect(() => {
-    if (checkingAuth) return;             // don't call API until auth known
+    if (checkingAuth) return;
     if (!user || user.role !== "admin") return;
 
     const fetchStats = async () => {
@@ -98,7 +96,7 @@ export default function AdminDashboardPage() {
             </h1>
             <p className="text-sm text-slate-500 mt-1">
               Welcome back, <span className="font-medium">{user.name}</span>.{" "}
-              Manage courses and monitor activity here.
+              Manage courses, enrollments and assignments here.
             </p>
           </div>
 
@@ -117,7 +115,7 @@ export default function AdminDashboardPage() {
         )}
 
         {/* Stats cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
           {/* Total Courses */}
           <div className="bg-white shadow-sm rounded-xl p-4 border border-slate-100">
             <p className="text-xs font-medium text-slate-500 uppercase">
@@ -127,7 +125,7 @@ export default function AdminDashboardPage() {
               {loading ? "…" : stats.totalCourses}
             </p>
             <p className="mt-1 text-xs text-slate-400">
-              All courses currently available on CourseMaster.
+              Courses currently available on CourseMaster.
             </p>
           </div>
 
@@ -140,7 +138,7 @@ export default function AdminDashboardPage() {
               {loading ? "…" : stats.totalStudents}
             </p>
             <p className="mt-1 text-xs text-slate-400">
-              Registered students with access to courses.
+              Registered learners on the platform.
             </p>
           </div>
 
@@ -156,10 +154,24 @@ export default function AdminDashboardPage() {
               Total enrollments across all courses.
             </p>
           </div>
+
+          {/* Admins */}
+          <div className="bg-white shadow-sm rounded-xl p-4 border border-slate-100">
+            <p className="text-xs font-medium text-slate-500 uppercase">
+              Admins
+            </p>
+            <p className="mt-2 text-2xl font-semibold text-slate-900">
+              {loading ? "…" : stats.totalAdmins}
+            </p>
+            <p className="mt-1 text-xs text-slate-400">
+              Accounts with admin privileges.
+            </p>
+          </div>
         </div>
 
         {/* Quick actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Course management */}
           <div className="bg-white shadow-sm rounded-xl p-5 border border-slate-100">
             <h2 className="text-lg font-semibold text-slate-900 mb-2">
               Course Management
@@ -183,27 +195,41 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
+          {/* Enrollments */}
           <div className="bg-white shadow-sm rounded-xl p-5 border border-slate-100">
             <h2 className="text-lg font-semibold text-slate-900 mb-2">
               Students & Enrollments
             </h2>
             <p className="text-sm text-slate-500 mb-4">
-              Later you can list all students, monitor enrollments, and track
-              progress in detail.
+              View all enrollments by course and batch, and monitor learner
+              progress.
             </p>
             <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                className="px-3 py-1.5 text-sm rounded border border-slate-300 text-slate-600 cursor-not-allowed"
+              <Link
+                href="/admin/enrollments"
+                className="px-3 py-1.5 text-sm rounded bg-emerald-600 text-white hover:bg-emerald-700"
               >
-                View Students (coming soon)
-              </button>
-              <button
-                type="button"
-                className="px-3 py-1.5 text-sm rounded border border-slate-300 text-slate-600 cursor-not-allowed"
+                View Enrollments
+              </Link>
+            </div>
+          </div>
+
+          {/* Assignment review */}
+          <div className="bg-white shadow-sm rounded-xl p-5 border border-slate-100">
+            <h2 className="text-lg font-semibold text-slate-900 mb-2">
+              Assignment Review
+            </h2>
+            <p className="text-sm text-slate-500 mb-4">
+              Review submitted assignments, provide scores, and share feedback
+              with students.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/admin/assignments"
+                className="px-3 py-1.5 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700"
               >
-                View Enrollments (coming soon)
-              </button>
+                Go to Submissions
+              </Link>
             </div>
           </div>
         </div>

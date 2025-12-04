@@ -120,7 +120,7 @@ export default function AdminCoursesPage() {
               Manage Courses
             </h1>
             <p className="text-sm text-slate-500">
-              View, edit, and delete courses available on CourseMaster.
+              View, edit, delete courses and manage their batches.
             </p>
           </div>
 
@@ -211,8 +211,16 @@ export default function AdminCoursesPage() {
                       )}
                     </td>
                     <td className="px-4 py-3 align-top text-right">
-                      <div className="inline-flex gap-2">
-                        {/* Edit – you can create this page next */}
+                      <div className="inline-flex flex-wrap gap-2 justify-end">
+                        {/* 🔹 Manage Batches */}
+                        <Link
+                          href={`/admin/courses/${course._id}/batches`}
+                          className="px-3 py-1.5 text-xs rounded-lg border border-emerald-500 text-emerald-600 hover:bg-emerald-50"
+                        >
+                          Manage Batches
+                        </Link>
+
+                        {/* Edit */}
                         <Link
                           href={`/admin/courses/${course._id}/edit`}
                           className="px-3 py-1.5 text-xs rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
