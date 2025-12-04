@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
-import EnrollButton from "./Enrollbutton"; // or "./EnrollButton" if that is the file name
-
+import EnrollButton from "./Enrollbutton";
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
