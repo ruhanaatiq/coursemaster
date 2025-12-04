@@ -1,4 +1,4 @@
-// backend/controllers/authController.js
+// authController.js
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
@@ -10,13 +10,14 @@ const generateToken = (user) =>
     { expiresIn: "7d" }
   );
 
-// Convert ADMIN_EMAILS env string into array
 const getAdminEmails = () => {
   if (!process.env.ADMIN_EMAILS) return [];
   return process.env.ADMIN_EMAILS.split(",").map((email) =>
     email.trim().toLowerCase()
   );
 };
+
+const isProduction = process.env.NODE_ENV === "production";
 
 const register = async (req, res) => {
   try {
@@ -33,7 +34,6 @@ const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Determine role
     const adminEmails = getAdminEmails();
     const assignedRole = adminEmails.includes(email.toLowerCase())
       ? "admin"
@@ -51,8 +51,8 @@ const register = async (req, res) => {
     res
       .cookie("token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: isProduction,                         // 🔐 only https in prod
+        sameSite: isProduction ? "none" : "lax",      // 🔴 IMPORTANT
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .status(201)
@@ -74,16 +74,14 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password, role } = req.body; // 👈 now also getting role
+    const { email, password, role } = req.body;
 
     console.log("Login attempt:", { email, role });
 
     const user = await User.findOne({ email });
-
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-
 
     const isMatch = await user.matchPassword
       ? user.matchPassword(password)
@@ -93,14 +91,13 @@ const login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-   
     const token = generateToken(user);
 
     res
       .cookie("token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: isProduction,                         // 🔐
+        sameSite: isProduction ? "none" : "lax",      // 🔴
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .status(200)
@@ -110,7 +107,7 @@ const login = async (req, res) => {
           id: user._id,
           name: user.name,
           email: user.email,
-          role: user.role, // 👈 single source of truth
+          role: user.role,
         },
         token,
       });
