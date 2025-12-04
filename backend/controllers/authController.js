@@ -1,4 +1,3 @@
-// authController.js
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
@@ -51,8 +50,8 @@ const register = async (req, res) => {
     res
       .cookie("token", token, {
         httpOnly: true,
-        secure: isProduction,                         // 🔐 only https in prod
-        sameSite: isProduction ? "none" : "lax",      // 🔴 IMPORTANT
+        secure: isProduction,                    // ✅
+        sameSite: isProduction ? "none" : "lax", // ✅
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .status(201)
@@ -91,13 +90,13 @@ const login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const token = generateToken(user);
+    const token = generateToken(user);           // ⬅ if this throws → 500
 
     res
       .cookie("token", token, {
         httpOnly: true,
-        secure: isProduction,                         // 🔐
-        sameSite: isProduction ? "none" : "lax",      // 🔴
+        secure: isProduction,                    // ✅
+        sameSite: isProduction ? "none" : "lax", // ✅
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .status(200)
