@@ -1,3 +1,4 @@
+// src/app/courses/[id]/learn/page.jsx
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
@@ -5,6 +6,9 @@ import { useSelector } from "react-redux";
 import { useRouter, useParams } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
+
+// 🔹 NEW: import the Assignment + Quiz section
+import AssignmentAndQuizSection from "@/components/AssignmentAndQuizSection";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -160,6 +164,9 @@ export default function CourseLearnPage() {
     return "OTHER";
   };
 
+  // 🔹 If you stored batchId on enrollment, grab it here
+  const batchId = enrollment?.batchId || null;
+
   return (
     <div className="min-h-screen bg-slate-50 pt-24 px-4 pb-12">
       <div className="max-w-6xl mx-auto grid gap-6 lg:grid-cols-[2fr,1.2fr]">
@@ -226,7 +233,7 @@ export default function CourseLearnPage() {
                 </p>
               )}
 
-              {/* 🔥 NEW: Resources section */}
+              {/* Extra resources */}
               {activeLesson.resources && activeLesson.resources.length > 0 && (
                 <div className="mb-4">
                   <p className="text-xs font-semibold text-slate-600 mb-2">
@@ -252,6 +259,21 @@ export default function CourseLearnPage() {
                 </div>
               )}
 
+              {/* 🔹 NEW: Assignment + Quiz for THIS lesson/module */}
+              <div className="mt-4 mb-6">
+                <AssignmentAndQuizSection
+                  courseId={courseId}
+                  // use lesson _id (or moduleId if that’s what you store in DB)
+                  moduleId={
+                    activeLesson._id ||
+                    activeLesson.moduleId ||
+                    String(activeLessonIndex)
+                  }
+                  batchId={batchId}
+                />
+              </div>
+
+              {/* Complete lesson button */}
               <button
                 onClick={handleCompleteLesson}
                 disabled={updatingProgress || isCompleted}

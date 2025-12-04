@@ -1,6 +1,10 @@
 // backend/routes/adminRoutes.js
 const express = require("express");
-const { adminStats } = require("../controllers/adminController");
+const {
+  adminStats,
+  // 🔹 NEW: analytics controller
+  adminEnrollmentTrend,
+} = require("../controllers/adminController");
 const { protect, adminOnly } = require("../middleware/authMiddleware");
 
 // 🔹 Models
@@ -11,10 +15,20 @@ const AssignmentSubmission = require("../models/AssignmentSubmission");
 const router = express.Router();
 
 /* ===========================
-   0. ADMIN STATS
+   0. ADMIN STATS & ANALYTICS
    =========================== */
 
+// Overview stats (cards on dashboard)
 router.get("/stats", protect, adminOnly, adminStats);
+
+// 🔹 NEW: enrollments over time (for Recharts chart)
+// GET /api/admin/enrollments-over-time?days=30
+router.get(
+  "/enrollments-over-time",
+  protect,
+  adminOnly,
+  adminEnrollmentTrend
+);
 
 /* ===========================
    1. COURSE MANAGEMENT (CRUD)
@@ -175,6 +189,8 @@ router.get("/enrollments", protect, adminOnly, async (req, res) => {
     if (batchId) filter.batchId = batchId;
 
     const enrollments = await Enrollment.find(filter)
+      // NOTE: make sure this matches your Enrollment schema field name.
+      // If your schema uses `user`, change "student" to "user" here
       .populate("student", "name email")
       .populate("course", "title");
 

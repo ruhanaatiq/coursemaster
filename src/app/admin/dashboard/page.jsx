@@ -6,10 +6,20 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
+// 🔹 Recharts imports
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
+
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
-// keep cookies (JWT)
 axios.defaults.withCredentials = true;
 
 export default function AdminDashboardPage() {
@@ -25,23 +35,29 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // 🔹 NEW: chart state
+  const [enrollmentTrend, setEnrollmentTrend] = useState([]);
+  const [trendLoading, setTrendLoading] = useState(false);
+
   // 🔒 Role-based guard – but WAIT until auth check is done
   useEffect(() => {
     if (checkingAuth) return; // still checking JWT / localStorage
 
     if (!user) {
+      // no user after check → send to login
       router.push("/login");
       return;
     }
 
     if (user.role !== "admin") {
+      // logged in but not admin → student dashboard
       router.push("/dashboard");
     }
   }, [user, checkingAuth, router]);
 
   // Fetch admin stats from /api/admin/stats
   useEffect(() => {
-    if (checkingAuth) return;
+    if (checkingAuth) return; // don't call API until auth known
     if (!user || user.role !== "admin") return;
 
     const fetchStats = async () => {
@@ -71,6 +87,33 @@ export default function AdminDashboardPage() {
     fetchStats();
   }, [user, checkingAuth]);
 
+  // 🔹 NEW: fetch enrollment trend for chart
+  useEffect(() => {
+    if (checkingAuth) return;
+    if (!user || user.role !== "admin") return;
+
+    const fetchTrend = async () => {
+      try {
+        setTrendLoading(true);
+
+        const res = await axios.get(
+          `${API_BASE}/api/admin/enrollments-over-time?days=30`,
+          { withCredentials: true }
+        );
+
+        // API returns [{ date: "2025-12-01", enrollments: 5 }, ...]
+        setEnrollmentTrend(res.data || []);
+      } catch (err) {
+        console.error("Enrollment trend error:", err);
+        // keep dashboard usable even if chart fails
+      } finally {
+        setTrendLoading(false);
+      }
+    };
+
+    fetchTrend();
+  }, [user, checkingAuth]);
+
   // While we are still checking auth globally
   if (checkingAuth) {
     return (
@@ -96,7 +139,7 @@ export default function AdminDashboardPage() {
             </h1>
             <p className="text-sm text-slate-500 mt-1">
               Welcome back, <span className="font-medium">{user.name}</span>.{" "}
-              Manage courses, enrollments and assignments here.
+              Manage courses and monitor activity here.
             </p>
           </div>
 
@@ -115,7 +158,7 @@ export default function AdminDashboardPage() {
         )}
 
         {/* Stats cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           {/* Total Courses */}
           <div className="bg-white shadow-sm rounded-xl p-4 border border-slate-100">
             <p className="text-xs font-medium text-slate-500 uppercase">
@@ -125,7 +168,7 @@ export default function AdminDashboardPage() {
               {loading ? "…" : stats.totalCourses}
             </p>
             <p className="mt-1 text-xs text-slate-400">
-              Courses currently available on CourseMaster.
+              All courses currently available on CourseMaster.
             </p>
           </div>
 
@@ -138,7 +181,7 @@ export default function AdminDashboardPage() {
               {loading ? "…" : stats.totalStudents}
             </p>
             <p className="mt-1 text-xs text-slate-400">
-              Registered learners on the platform.
+              Registered students with access to courses.
             </p>
           </div>
 
@@ -154,24 +197,65 @@ export default function AdminDashboardPage() {
               Total enrollments across all courses.
             </p>
           </div>
-
-          {/* Admins */}
-          <div className="bg-white shadow-sm rounded-xl p-4 border border-slate-100">
-            <p className="text-xs font-medium text-slate-500 uppercase">
-              Admins
-            </p>
-            <p className="mt-2 text-2xl font-semibold text-slate-900">
-              {loading ? "…" : stats.totalAdmins}
-            </p>
-            <p className="mt-1 text-xs text-slate-400">
-              Accounts with admin privileges.
-            </p>
-          </div>
         </div>
 
-        {/* Quick actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Course management */}
+        {/* 🔹 NEW: Enrollment chart */}
+        <div className="mb-8 bg-white shadow-sm rounded-xl border border-slate-100 p-4 md:p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-900">
+                Enrollments (last 30 days)
+              </h2>
+              <p className="text-xs text-slate-500">
+                Daily enrollments across all courses.
+              </p>
+            </div>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 uppercase tracking-wide">
+              Analytics
+            </span>
+          </div>
+
+          {trendLoading ? (
+            <p className="text-xs text-slate-500">Loading chart…</p>
+          ) : enrollmentTrend.length === 0 ? (
+            <p className="text-xs text-slate-500">
+              No enrollments recorded in the selected period.
+            </p>
+          ) : (
+            <div className="w-full h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={enrollmentTrend} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 10 }}
+                    tickFormatter={(d) => d.slice(5)} // show MM-DD
+                  />
+                  <YAxis
+                    allowDecimals={false}
+                    tick={{ fontSize: 10 }}
+                    width={30}
+                  />
+                  <Tooltip
+                    formatter={(value) => [`${value} enrollments`, "Enrollments"]}
+                    labelFormatter={(label) => `Date: ${label}`}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="enrollments"
+                    stroke="#2563eb"
+                    strokeWidth={2}
+                    dot={{ r: 2 }}
+                    activeDot={{ r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+
+        {/* Quick actions (same as before) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white shadow-sm rounded-xl p-5 border border-slate-100">
             <h2 className="text-lg font-semibold text-slate-900 mb-2">
               Course Management
@@ -195,40 +279,19 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Enrollments */}
           <div className="bg-white shadow-sm rounded-xl p-5 border border-slate-100">
             <h2 className="text-lg font-semibold text-slate-900 mb-2">
               Students & Enrollments
             </h2>
             <p className="text-sm text-slate-500 mb-4">
-              View all enrollments by course and batch, and monitor learner
-              progress.
+              View all course enrollments and track student progress.
             </p>
             <div className="flex flex-wrap gap-2">
               <Link
                 href="/admin/enrollments"
-                className="px-3 py-1.5 text-sm rounded bg-emerald-600 text-white hover:bg-emerald-700"
+                className="px-3 py-1.5 text-sm rounded border border-slate-300 text-slate-700 hover:bg-slate-100"
               >
                 View Enrollments
-              </Link>
-            </div>
-          </div>
-
-          {/* Assignment review */}
-          <div className="bg-white shadow-sm rounded-xl p-5 border border-slate-100">
-            <h2 className="text-lg font-semibold text-slate-900 mb-2">
-              Assignment Review
-            </h2>
-            <p className="text-sm text-slate-500 mb-4">
-              Review submitted assignments, provide scores, and share feedback
-              with students.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href="/admin/assignments"
-                className="px-3 py-1.5 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700"
-              >
-                Go to Submissions
               </Link>
             </div>
           </div>
