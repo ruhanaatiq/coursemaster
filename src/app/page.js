@@ -1,15 +1,14 @@
 "use client";
 
+import Hero from "@/components/Hero";
+import InstructorSpotlight from "@/components/InstructorSpotlight";
 import Image from "next/image";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <h1 className="text-4xl font-bold">Welcome to CourseMaster</h1>
-
-      <p className="mt-4 text-lg text-gray-600">
-        Build your E-learning platform with Next.js and Express.
-      </p>
-    </main>
+    <>  <Hero/>
+    <InstructorSpotlight/>
+    </>
+   
   );
 }
