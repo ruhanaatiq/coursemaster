@@ -5,7 +5,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
 
-dotenv.config(); // ✅ load env
+dotenv.config(); // load env
 
 // Route imports
 let authRoutes = require("./routes/authRoutes");
@@ -15,7 +15,7 @@ let adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
-// 🔎 Normalizer: if a route module exported { router } instead of the router itself
+// 🔎 Normalizer (kept)
 const normalizeRoute = (mod) => {
   if (!mod) return mod;
   if (typeof mod === "function") return mod;
@@ -27,12 +27,6 @@ authRoutes = normalizeRoute(authRoutes);
 courseRoutes = normalizeRoute(courseRoutes);
 enrollmentRoutes = normalizeRoute(enrollmentRoutes);
 adminRoutes = normalizeRoute(adminRoutes);
-
-// (Optional) Debug logs – you can comment these out in production
-console.log("typeof authRoutes:", typeof authRoutes);
-console.log("typeof courseRoutes:", typeof courseRoutes);
-console.log("typeof enrollmentRoutes:", typeof enrollmentRoutes);
-console.log("typeof adminRoutes:", typeof adminRoutes);
 
 // Middlewares
 app.use(
@@ -55,39 +49,42 @@ app.get("/", (req, res) => {
   res.send("CourseMaster API is running");
 });
 
-// DB + server
+// DB
 const PORT = process.env.PORT || 5000;
 
-// ✅ Use a reusable connection function (better for Vercel)
 const connectDB = async () => {
-  if (mongoose.connection.readyState === 1) {
-    // already connected
-    return;
-  }
+  if (mongoose.connection.readyState === 1) return; // already connected
 
   try {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("✅ MongoDB connected");
   } catch (err) {
     console.error("❌ MongoDB connection error:", err.message);
-    // ❌ Don't use process.exit(1) on Vercel
     throw err;
   }
 };
 
-// Immediately connect when the file is loaded
-connectDB()
-  .then(() => {
-    // 🧪 Only start app.listen when running locally (not on Vercel)
-    if (!process.env.VERCEL) {
+/**
+ * 👉 Local dev: connect + listen
+ * 👉 Vercel: only export app; Vercel will call it as a serverless function
+ */
+if (!process.env.VERCEL) {
+  // running locally
+  connectDB()
+    .then(() => {
       app.listen(PORT, () => {
         console.log(`✅ Server running on http://localhost:${PORT}`);
       });
-    }
-  })
-  .catch((err) => {
-    console.error("❌ Failed to start server:", err.message);
+    })
+    .catch((err) => {
+      console.error("❌ Failed to start server:", err.message);
+    });
+} else {
+  // running on Vercel – connect on cold start
+  connectDB().catch((err) => {
+    console.error("❌ DB connection error on Vercel:", err.message);
   });
+}
 
-// 👉 Important: export the app for Vercel serverless
+// important for Vercel
 module.exports = app;
