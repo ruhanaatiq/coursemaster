@@ -144,7 +144,7 @@ export default function AdminCoursesPage() {
           <table className="min-w-full text-sm">
             <thead className="bg-slate-50 border-b border-slate-100">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500">
+                <th className="px-4 py-3 text-left text-xs font-semibold ">
                   Title
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500">

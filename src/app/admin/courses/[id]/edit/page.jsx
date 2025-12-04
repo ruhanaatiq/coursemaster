@@ -302,7 +302,7 @@ export default function AdminEditCoursePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-24 px-4 pb-12">
+    <div className="min-h-screen bg-slate-500 pt-24 px-4 pb-12">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
         <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
           Edit Course

@@ -71,7 +71,6 @@ export default function AdminAssignmentsPage() {
   useEffect(() => {
     if (!user || user.role !== "admin" || checkingAuth) return;
     fetchCourses();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, checkingAuth]);
 
   // reset batch & submissions when course changes
