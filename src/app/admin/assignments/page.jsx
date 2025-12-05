@@ -187,7 +187,7 @@ export default function AdminAssignmentsPage() {
           <div>
             <p className="text-xs text-slate-500 mb-1">
               <Link
-                href="/admin"
+                href="/admin/dashboard"
                 className="underline-offset-2 hover:underline"
               >
                 ← Back to Admin Dashboard

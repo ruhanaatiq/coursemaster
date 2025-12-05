@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
 import axios from "axios";
 
 const API_BASE =
@@ -82,9 +83,7 @@ export default function AdminEditCoursePage() {
           instructor: course.instructor || "",
           category: course.category || "web-development",
           price: course.price ?? "",
-          tagsInput: Array.isArray(course.tags)
-            ? course.tags.join(", ")
-            : "",
+          tagsInput: Array.isArray(course.tags) ? course.tags.join(", ") : "",
         });
 
         if (Array.isArray(course.syllabus) && course.syllabus.length > 0) {
@@ -96,23 +95,23 @@ export default function AdminEditCoursePage() {
               title: lesson.title || "",
               description: lesson.description || "",
               videoUrl: lesson.videoUrl || "",
-              resources: Array.isArray(lesson.resources) && lesson.resources.length
-                ? lesson.resources.map((r) => ({
-                    type: r.type || "article",
-                    label: r.label || "",
-                    url: r.url || "",
-                  }))
-                : [
-                    {
-                      type: "article",
-                      label: "",
-                      url: "",
-                    },
-                  ],
+              resources:
+                Array.isArray(lesson.resources) && lesson.resources.length
+                  ? lesson.resources.map((r) => ({
+                      type: r.type || "article",
+                      label: r.label || "",
+                      url: r.url || "",
+                    }))
+                  : [
+                      {
+                        type: "article",
+                        label: "",
+                        url: "",
+                      },
+                    ],
             }))
           );
         } else {
-          // fallback: one empty lesson
           setLessons([
             {
               title: "",
@@ -275,7 +274,6 @@ export default function AdminEditCoursePage() {
 
       setSuccess("Course updated successfully!");
       console.log("Updated course:", res.data.course);
-
       // optional redirect
       // setTimeout(() => router.push("/admin/courses"), 800);
     } catch (err) {
@@ -291,7 +289,7 @@ export default function AdminEditCoursePage() {
 
   if (checkingAuth || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-slate-50">
         <p className="text-sm text-slate-500">Loading course…</p>
       </div>
     );
@@ -302,301 +300,345 @@ export default function AdminEditCoursePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-500 pt-24 px-4 pb-12">
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
-          Edit Course
-        </h1>
-        <p className="text-sm text-slate-500 mb-4">
-          Update course details, lessons, and resources.
-        </p>
-
-        {error && (
-          <p className="mb-3 text-sm text-red-500 bg-red-50 px-3 py-2 rounded">
-            {error}
-          </p>
-        )}
-        {success && (
-          <p className="mb-3 text-sm text-green-600 bg-green-50 px-3 py-2 rounded">
-            {success}
-          </p>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic info */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="block text-sm text-black font-medium mb-1">
-                Title
-              </label>
-              <input
-                type="text"
-                name="title"
-                value={courseForm.title}
-                onChange={handleCourseChange}
-                required
-                className="w-full border text-black border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-black font-medium mb-1">
-                Instructor
-              </label>
-              <input
-                type="text"
-                name="instructor"
-                value={courseForm.instructor}
-                onChange={handleCourseChange}
-                required
-                className="w-full border text-black border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          {/* Category & Price */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="block text-sm text-black font-medium mb-1">
-                Category
-              </label>
-              <select
-                name="category"
-                value={courseForm.category}
-                onChange={handleCourseChange}
-                className="w-full border border-slate-200 text-shadow-slate-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="web-development">Web Development</option>
-                <option value="programming">Programming</option>
-                <option value="design">Design</option>
-                <option value="data-science">Data Science</option>
-                <option value="general">General</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm text-black font-medium mb-1">
-                Price (USD)
-              </label>
-              <input
-                type="number"
-                name="price"
-                min="0"
-                value={courseForm.price}
-                onChange={handleCourseChange}
-                className="w-full border text-black border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          {/* Tags */}
+    <div className="min-h-[calc(100vh-64px)] bg-slate-50 pt-24 px-4 pb-12">
+      <div className="max-w-5xl mx-auto">
+        {/* Top bar */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
           <div>
-            <label className="block text-sm text-black font-medium mb-1">
-              Tags (comma separated)
-            </label>
-            <input
-              type="text"
-              name="tagsInput"
-              value={courseForm.tagsInput}
-              onChange={handleCourseChange}
-              className="w-full border text-black border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="react, javascript, frontend"
-            />
+            <p className="text-xs text-slate-400 uppercase tracking-wide">
+              Courses / Edit
+            </p>
+            <h1 className="text-2xl md:text-3xl font-semibold text-slate-900">
+              Edit Course
+            </h1>
+            <p className="text-sm text-slate-500">
+              Update course details, lessons, and resources.
+            </p>
           </div>
 
-          {/* Description */}
-          <div>
-            <label className="block text-sm text-black font-medium mb-1">
-              Description
-            </label>
-            <textarea
-              name="description"
-              value={courseForm.description}
-              onChange={handleCourseChange}
-              rows={3}
-              className="w-full border border-slate-200 text-black rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <div className="flex items-center gap-2">
+            <Link
+              href="/admin/courses"
+              className="px-3 py-1.5 text-xs md:text-sm rounded-lg border border-slate-200 text-slate-700 bg-white hover:bg-slate-50"
+            >
+              ← Back to Courses
+            </Link>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={saving}
+              className="hidden md:inline-flex px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-60"
+            >
+              {saving ? "Saving..." : "Save Changes"}
+            </button>
           </div>
+        </div>
 
-          {/* Lessons */}
-          <div className="border-t border-slate-100 pt-4">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-slate-900">
-                Lessons & Resources
+        {/* Main card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 md:p-7">
+          {error && (
+            <p className="mb-3 text-sm text-red-600 bg-red-50 border border-red-100 px-3 py-2 rounded-lg">
+              {error}
+            </p>
+          )}
+          {success && (
+            <p className="mb-3 text-sm text-green-600 bg-green-50 border border-green-100 px-3 py-2 rounded-lg">
+              {success}
+            </p>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Basic info */}
+            <section>
+              <h2 className="text-sm font-semibold text-slate-900 mb-3">
+                Basic Information
               </h2>
-              <button
-                type="button"
-                onClick={addLesson}
-                className="text-xs px-3 py-1.5 rounded-lg border border-blue-600 text-blue-600 hover:bg-blue-50"
-              >
-                + Add Lesson
-              </button>
-            </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block text-sm text-slate-700 font-medium mb-1">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={courseForm.title}
+                    onChange={handleCourseChange}
+                    required
+                    className="w-full border text-slate-900 border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
 
-            <div className="space-y-4">
-              {lessons.map((lesson, idx) => (
-                <div
-                  key={idx}
-                  className="border border-slate-200 rounded-lg p-3 bg-slate-50/60"
+                <div>
+                  <label className="block text-sm text-slate-700 font-medium mb-1">
+                    Instructor
+                  </label>
+                  <input
+                    type="text"
+                    name="instructor"
+                    value={courseForm.instructor}
+                    onChange={handleCourseChange}
+                    required
+                    className="w-full border text-slate-900 border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* Category & Price & Tags */}
+            <section className="grid gap-4 md:grid-cols-3">
+              <div className="md:col-span-1">
+                <label className="block text-sm text-slate-700 font-medium mb-1">
+                  Category
+                </label>
+                <select
+                  name="category"
+                  value={courseForm.category}
+                  onChange={handleCourseChange}
+                  className="w-full border border-slate-200 text-slate-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-semibold text-slate-700">
-                      Lesson {idx + 1}
-                    </p>
-                    {lessons.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeLesson(idx)}
-                        className="text-[11px] text-red-500 hover:underline"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
+                  <option value="web-development">Web Development</option>
+                  <option value="programming">Programming</option>
+                  <option value="design">Design</option>
+                  <option value="data-science">Data Science</option>
+                  <option value="general">General</option>
+                </select>
+              </div>
 
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <div>
-                      <label className="block text-xs text-black font-medium mb-1">
-                        Lesson Title
-                      </label>
-                      <input
-                        type="text"
-                        value={lesson.title}
-                        onChange={(e) =>
-                          handleLessonFieldChange(idx, "title", e.target.value)
-                        }
-                        className="w-full border text-black border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
+              <div className="md:col-span-1">
+                <label className="block text-sm text-slate-700 font-medium mb-1">
+                  Price (USD)
+                </label>
+                <input
+                  type="number"
+                  name="price"
+                  min="0"
+                  value={courseForm.price}
+                  onChange={handleCourseChange}
+                  className="w-full border text-slate-900 border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="md:col-span-1">
+                <label className="block text-sm text-slate-700 font-medium mb-1">
+                  Tags (comma separated)
+                </label>
+                <input
+                  type="text"
+                  name="tagsInput"
+                  value={courseForm.tagsInput}
+                  onChange={handleCourseChange}
+                  className="w-full border text-slate-900 border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="react, javascript, frontend"
+                />
+              </div>
+            </section>
+
+            {/* Description */}
+            <section>
+              <label className="block text-sm text-slate-700 font-medium mb-1">
+                Description
+              </label>
+              <textarea
+                name="description"
+                value={courseForm.description}
+                onChange={handleCourseChange}
+                rows={4}
+                className="w-full border border-slate-200 text-slate-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </section>
+
+            {/* Lessons */}
+            <section className="border-t border-slate-100 pt-5">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h2 className="text-sm font-semibold text-slate-900">
+                    Lessons & Resources
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Structure your syllabus with videos and extra materials.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={addLesson}
+                  className="text-xs px-3 py-1.5 rounded-lg border border-blue-600 text-blue-600 hover:bg-blue-50"
+                >
+                  + Add Lesson
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {lessons.map((lesson, idx) => (
+                  <div
+                    key={idx}
+                    className="border border-slate-200 rounded-xl p-3 md:p-4 bg-slate-50/70"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-semibold text-slate-700">
+                        Lesson {idx + 1}
+                      </p>
+                      {lessons.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeLesson(idx)}
+                          className="text-[11px] text-red-500 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      )}
                     </div>
 
-                    <div>
-                      <label className="block text-xs text-black font-medium mb-1">
-                        Video URL (YouTube, etc.)
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div>
+                        <label className="block text-xs text-slate-700 font-medium mb-1">
+                          Lesson Title
+                        </label>
+                        <input
+                          type="text"
+                          value={lesson.title}
+                          onChange={(e) =>
+                            handleLessonFieldChange(
+                              idx,
+                              "title",
+                              e.target.value
+                            )
+                          }
+                          className="w-full border text-slate-900 border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs text-slate-700 font-medium mb-1">
+                          Video URL (YouTube, etc.)
+                        </label>
+                        <input
+                          type="text"
+                          value={lesson.videoUrl}
+                          onChange={(e) =>
+                            handleLessonFieldChange(
+                              idx,
+                              "videoUrl",
+                              e.target.value
+                            )
+                          }
+                          placeholder="https://youtube.com/..."
+                          className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-2">
+                      <label className="block text-xs text-slate-700 font-medium mb-1">
+                        Lesson Description
                       </label>
-                      <input
-                        type="text"
-                        value={lesson.videoUrl}
+                      <textarea
+                        value={lesson.description}
                         onChange={(e) =>
                           handleLessonFieldChange(
                             idx,
-                            "videoUrl",
+                            "description",
                             e.target.value
                           )
                         }
-                        placeholder="https://youtube.com/..."
-                        className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        rows={2}
+                        className="w-full border text-slate-900 border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
-                  </div>
 
-                  <div className="mt-2">
-                    <label className="block text-xs text-black font-medium mb-1">
-                      Lesson Description
-                    </label>
-                    <textarea
-                      value={lesson.description}
-                      onChange={(e) =>
-                        handleLessonFieldChange(
-                          idx,
-                          "description",
-                          e.target.value
-                        )
-                      }
-                      rows={2}
-                      className="w-full border text-black border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  {/* Resources */}
-                  <div className="mt-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-[11px] font-semibold text-slate-700">
-                        Additional Resources
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => addResource(idx)}
-                        className="text-[11px] text-blue-600 hover:underline"
-                      >
-                        + Add Resource
-                      </button>
-                    </div>
-
-                    <div className="space-y-2">
-                      {(lesson.resources || []).map((res, rIdx) => (
-                        <div
-                          key={rIdx}
-                          className="grid gap-2 md:grid-cols-[0.9fr,2fr,auto] items-center"
+                    {/* Resources */}
+                    <div className="mt-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-[11px] font-semibold text-slate-700">
+                          Additional Resources
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => addResource(idx)}
+                          className="text-[11px] text-blue-600 hover:underline"
                         >
-                          <select
-                            value={res.type}
-                            onChange={(e) =>
-                              handleResourceChange(
-                                idx,
-                                rIdx,
-                                "type",
-                                e.target.value
-                              )
-                            }
-                            className="border border-slate-200 rounded-lg px-2 py-1.5 text-[11px] text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          + Add Resource
+                        </button>
+                      </div>
+
+                      <div className="space-y-2">
+                        {(lesson.resources || []).map((res, rIdx) => (
+                          <div
+                            key={rIdx}
+                            className="grid gap-2 md:grid-cols-[0.9fr,2fr,auto] items-center"
                           >
-                            <option value="article">Article</option>
-                            <option value="video">Video</option>
-                          </select>
-                          <div className="flex flex-col gap-1">
-                            <input
-                              type="text"
-                              value={res.label}
+                            <select
+                              value={res.type}
                               onChange={(e) =>
                                 handleResourceChange(
                                   idx,
                                   rIdx,
-                                  "label",
+                                  "type",
                                   e.target.value
                                 )
                               }
-                              placeholder="Resource title (e.g. MDN – JS Guide)"
-                              className="w-full border border-slate-200 text-black rounded-lg px-2 py-1.5 text-[11px] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            <input
-                              type="text"
-                              value={res.url}
-                              onChange={(e) =>
-                                handleResourceChange(
-                                  idx,
-                                  rIdx,
-                                  "url",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="https://..."
-                              className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-[11px] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
+                              className="border border-slate-200 rounded-lg px-2 py-1.5 text-[11px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="article">Article</option>
+                              <option value="video">Video</option>
+                            </select>
+                            <div className="flex flex-col gap-1">
+                              <input
+                                type="text"
+                                value={res.label}
+                                onChange={(e) =>
+                                  handleResourceChange(
+                                    idx,
+                                    rIdx,
+                                    "label",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Resource title (e.g. MDN – JS Guide)"
+                                className="w-full border border-slate-200 text-slate-900 rounded-lg px-2 py-1.5 text-[11px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                              <input
+                                type="text"
+                                value={res.url}
+                                onChange={(e) =>
+                                  handleResourceChange(
+                                    idx,
+                                    rIdx,
+                                    "url",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="https://..."
+                                className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-[11px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeResource(idx, rIdx)}
+                              className="text-[11px] text-red-500 hover:underline"
+                            >
+                              Remove
+                            </button>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => removeResource(idx, rIdx)}
-                            className="text-[11px] text-red-500 hover:underline"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
+                ))}
+              </div>
+            </section>
 
-          <button
-            type="submit"
-            disabled={saving}
-            className="inline-flex px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-60"
-          >
-            {saving ? "Saving..." : "Save Changes"}
-          </button>
-        </form>
+            {/* Bottom Save button (mobile & desktop) */}
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={saving}
+                className="inline-flex px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-60"
+              >
+                {saving ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

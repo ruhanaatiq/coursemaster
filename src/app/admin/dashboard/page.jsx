@@ -295,6 +295,22 @@ export default function AdminDashboardPage() {
               </Link>
             </div>
           </div>
+           <div className="bg-white shadow-sm rounded-xl p-5 border border-slate-100">
+    <h2 className="text-lg font-semibold text-slate-900 mb-2">
+      Assignment Review
+    </h2>
+    <p className="text-sm text-slate-500 mb-4">
+      Review submitted assignments, provide scores, and share feedback with students.
+    </p>
+    <div className="flex flex-wrap gap-2">
+      <Link
+        href="/admin/assignments"
+        className="px-3 py-1.5 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700"
+      >
+        Go to Submissions
+      </Link>
+    </div>
+  </div>
         </div>
       </div>
     </div>
