@@ -66,7 +66,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-slate-100 to-slate-200">
       {/* Top bar */}
       <header className="w-full border-b border-slate-200 bg-white/70 backdrop-blur">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">

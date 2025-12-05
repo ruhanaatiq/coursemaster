@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Hero() {
   return (
@@ -78,7 +79,7 @@ export default function Hero() {
           className="relative flex justify-center"
         >
           <motion.img
-            src="https://cdni.iconscout.com/illustration/premium/thumb/online-courses-6818594-5638799.png"
+            src="https://img.freepik.com/free-vector/digital-learning-abstract-concept-vector-illustration-digital-distance-education-elearning-flipped-smart-classroom-training-courses-online-teaching-video-call-home-office-abstract-metaphor_335657-5860.jpg?semt=ais_hybrid&w=740&q=80"
             alt="Learning Illustration"
             className="w-[85%] md:w-[80%] drop-shadow-xl"
             animate={{
