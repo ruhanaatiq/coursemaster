@@ -2,12 +2,18 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 
-const generateToken = (user) =>
-  jwt.sign(
+const generateToken = (user) => {
+  if (!process.env.JWT_SECRET) {
+    // helpful for debugging misconfigured prod env
+    throw new Error("JWT_SECRET is not set in environment variables");
+  }
+
+  return jwt.sign(
     { id: user._id, role: user.role },
     process.env.JWT_SECRET,
     { expiresIn: "7d" }
   );
+};
 
 const getAdminEmails = () => {
   if (!process.env.ADMIN_EMAILS) return [];
@@ -50,8 +56,8 @@ const register = async (req, res) => {
     res
       .cookie("token", token, {
         httpOnly: true,
-        secure: isProduction,                    // ✅
-        sameSite: isProduction ? "none" : "lax", // ✅
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .status(201)
@@ -67,7 +73,7 @@ const register = async (req, res) => {
       });
   } catch (err) {
     console.error("Register error:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: err.message || "Server error" }); // 👈
   }
 };
 
@@ -77,26 +83,23 @@ const login = async (req, res) => {
 
     console.log("Login attempt:", { email, role });
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const isMatch = await user.matchPassword
-      ? user.matchPassword(password)
-      : bcrypt.compare(password, user.password);
-
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const token = generateToken(user);           // ⬅ if this throws → 500
+    const token = generateToken(user); // 👈 will throw if JWT_SECRET missing
 
     res
       .cookie("token", token, {
         httpOnly: true,
-        secure: isProduction,                    // ✅
-        sameSite: isProduction ? "none" : "lax", // ✅
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .status(200)
@@ -112,7 +115,7 @@ const login = async (req, res) => {
       });
   } catch (err) {
     console.error("Login error:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: err.message || "Server error" }); // 👈
   }
 };
 
