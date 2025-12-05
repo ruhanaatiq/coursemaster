@@ -79,7 +79,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-slate-100 to-slate-200">
       {/* Top bar */}
       <header className="w-full border-b border-slate-200 bg-white/70 backdrop-blur">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -221,7 +221,7 @@ export default function LoginPage() {
                     value={form.email}
                     onChange={handleChange}
                     required
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="you@example.com"
                   />
                 </div>
@@ -242,7 +242,7 @@ export default function LoginPage() {
                     value={form.password}
                     onChange={handleChange}
                     required
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Enter your password"
                   />
                 </div>
