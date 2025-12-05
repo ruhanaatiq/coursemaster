@@ -14,7 +14,7 @@ const router = express.Router();
  */
 router.post("/", protect, async (req, res) => {
   try {
-    const userId = req.user._id;
+    const studentId = req.user._id;      // ✅ logged-in student
     const { courseId } = req.body;
 
     if (!courseId) {
@@ -27,8 +27,10 @@ router.post("/", protect, async (req, res) => {
     }
 
     // If already enrolled, just return it
-    let enrollment = await Enrollment.findOne({ user: userId, course: courseId })
-      .populate("course");
+    let enrollment = await Enrollment.findOne({
+      student: studentId,               // ✅ use student field
+      course: courseId,
+    }).populate("course");
 
     if (enrollment) {
       return res.json({
@@ -39,11 +41,11 @@ router.post("/", protect, async (req, res) => {
 
     // For now: assume instant payment success
     enrollment = await Enrollment.create({
-      user: userId,
+      student: studentId,               // ✅ use student field
       course: courseId,
       status: "enrolled",
       progress: 0,
-      // if your schema doesn’t have these yet, either add them or remove these two lines
+      // ⬇ keep these only if your schema has them
       paymentStatus: course.price > 0 ? "paid" : "paid",
       totalPrice: course.price || 0,
     });
@@ -63,12 +65,12 @@ router.post("/", protect, async (req, res) => {
 });
 
 /**
- * 👉 NEW: GET /api/enrollments/by-course/:courseId
+ * GET /api/enrollments/by-course/:courseId
  * Used by the lesson page to load "my enrollment + course" for a specific course.
  */
 router.get("/by-course/:courseId", protect, async (req, res) => {
   try {
-    const userId = req.user._id;
+    const studentId = req.user._id;     // ✅
     const { courseId } = req.params;
 
     if (!courseId) {
@@ -82,7 +84,7 @@ router.get("/by-course/:courseId", protect, async (req, res) => {
     }
 
     const enrollment = await Enrollment.findOne({
-      user: userId,
+      student: studentId,               // ✅
       course: courseId,
     }).populate("course");
 
@@ -107,9 +109,9 @@ router.get("/by-course/:courseId", protect, async (req, res) => {
  */
 router.get("/me", protect, async (req, res) => {
   try {
-    const userId = req.user._id;
+    const studentId = req.user._id;     // ✅
 
-    const enrollments = await Enrollment.find({ user: userId })
+    const enrollments = await Enrollment.find({ student: studentId }) // ✅
       .populate("course")
       .sort({ createdAt: -1 });
 
@@ -129,7 +131,7 @@ router.get("/me", protect, async (req, res) => {
  */
 router.patch("/:id/progress", protect, async (req, res) => {
   try {
-    const userId = req.user._id;
+    const studentId = req.user._id;     // ✅
     const { id } = req.params;
     let { progress } = req.body;
 
@@ -142,7 +144,7 @@ router.patch("/:id/progress", protect, async (req, res) => {
 
     const enrollment = await Enrollment.findOne({
       _id: id,
-      user: userId,
+      student: studentId,               // ✅
     }).populate("course");
 
     if (!enrollment) {
@@ -182,6 +184,7 @@ router.patch("/:id/pay", protect, async (req, res) => {
       return res.status(404).json({ message: "Enrollment not found" });
     }
 
+    // ⬇ only if paymentStatus exists in your schema
     enrollment.paymentStatus = "paid";
     await enrollment.save();
 

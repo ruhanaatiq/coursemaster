@@ -247,7 +247,7 @@ export default function CoursesPage() {
             <button
               disabled={page === 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
+              className="px-3 py-1.5 text-sm rounded-lg border disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 text-black"
             >
               Previous
             </button>
@@ -259,7 +259,7 @@ export default function CoursesPage() {
               onClick={() =>
                 setPage((p) => (p < totalPages ? p + 1 : totalPages))
               }
-              className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
+              className="px-3 py-1.5 text-sm rounded-lg text-black border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
             >
               Next
             </button>
