@@ -86,7 +86,7 @@ export default function CoursesPage() {
           >
             {/* Search */}
             <div className="flex-1">
-              <label className="block text-xs font-medium text-slate-500 mb-1">
+              <label className="block text-xs font-medium text-black mb-1">
                 Search by title or instructor
               </label>
               <div className="flex gap-2">
@@ -95,7 +95,7 @@ export default function CoursesPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="e.g. React, JavaScript, Design..."
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full text-black border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
                 <button
                   type="submit"
@@ -117,7 +117,7 @@ export default function CoursesPage() {
                   setCategory(e.target.value);
                   setPage(1);
                 }}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full text-black border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="all">All</option>
                 <option value="web-development">Web Development</option>
@@ -138,7 +138,7 @@ export default function CoursesPage() {
                   setSort(e.target.value);
                   setPage(1);
                 }}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full text-black border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="newest">Newest</option>
                 <option value="priceLow">Price: Low to High</option>
@@ -247,11 +247,11 @@ export default function CoursesPage() {
             <button
               disabled={page === 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="px-3 py-1.5 text-sm rounded-lg border disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 text-black"
+              className="px-3 py-1.5 text-sm rounded-lg border disabled:opacity-70 disabled:cursor-not-allowed hover:bg-slate-50 text-black"
             >
               Previous
             </button>
-            <span className="text-sm text-slate-600">
+            <span className="text-sm text-black">
               Page {page} of {totalPages}
             </span>
             <button
@@ -259,7 +259,7 @@ export default function CoursesPage() {
               onClick={() =>
                 setPage((p) => (p < totalPages ? p + 1 : totalPages))
               }
-              className="px-3 py-1.5 text-sm rounded-lg text-black border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
+              className="px-3 py-1.5 text-sm rounded-lg text-black border border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
             >
               Next
             </button>

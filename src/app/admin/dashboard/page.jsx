@@ -289,7 +289,7 @@ export default function AdminDashboardPage() {
             <div className="flex flex-wrap gap-2">
               <Link
                 href="/admin/enrollments"
-                className="px-3 py-1.5 text-sm rounded border border-slate-300 text-slate-700 hover:bg-slate-100"
+                className="px-3 py-1.5 text-sm rounded border border-slate-300 text-white bg-blue-600 hover:bg-slate-100"
               >
                 View Enrollments
               </Link>

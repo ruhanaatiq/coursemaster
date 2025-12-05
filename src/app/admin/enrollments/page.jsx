@@ -160,7 +160,7 @@ export default function AdminEnrollmentsPage() {
               <select
                 value={selectedCourseId}
                 onChange={(e) => setSelectedCourseId(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full rounded-lg text-black border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 disabled={loadingCourses}
               >
                 <option value="">
@@ -190,7 +190,7 @@ export default function AdminEnrollmentsPage() {
               <select
                 value={selectedBatchId}
                 onChange={(e) => setSelectedBatchId(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full rounded-lg text-black border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 disabled={!currentCourse}
               >
                 <option value="">
@@ -215,7 +215,7 @@ export default function AdminEnrollmentsPage() {
                 type="button"
                 onClick={fetchEnrollments}
                 disabled={!selectedCourseId || loadingEnrollments}
-                className="w-full md:w-auto px-4 py-2 text-sm rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full md:w-auto px-4 py-2 text-sm rounded-lg bg-blue-900 text-white font-medium hover:bg-blue-200 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {loadingEnrollments ? "Loading…" : "Load Enrollments"}
               </button>
