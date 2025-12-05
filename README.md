@@ -1,36 +1,190 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+📘 CourseMaster – Learning Management System (LMS)
 
-## Getting Started
+CourseMaster is a full-stack Learning Management System (LMS) built using the MERN Stack (MongoDB, Express.js, React.js, Node.js).
+It enables students to browse courses, enroll, track progress, and submit assignments, while admins can manage courses, view stats, and maintain the platform through a secure role-based system.
 
-First, run the development server:
+🔐 Authentication
 
-```bash
+JWT-based authentication
+
+Secure HTTP-only cookie storage
+
+Role-based access control (student, admin)
+
+Admin roles are assigned automatically if the user's email matches ADMIN_EMAILS from .env
+
+🗂 Project Structure
+/backend
+   /controllers
+   /routes
+   /models
+   /middleware
+   index.js
+
+/frontend
+   /src
+      /components
+      /pages
+      /context
+      App.js
+
+⚙️ Installation & Running the Project
+📌 Prerequisites
+
+Node.js (v16+)
+
+MongoDB Atlas account
+
+npm or yarn
+
+1️⃣ Clone the Repository
+git clone https://github.com/your-username/CourseMaster.git
+cd CourseMaster
+
+2️⃣ Backend Setup
+cd backend
+npm install
+
+Run the backend
+npm start
+# or
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3️⃣ Frontend Setup
+cd ../frontend
+npm install
+npm run dev
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+🔑 Environment Variables (.env)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create a .env file inside the backend folder:
 
-## Learn More
+PORT=5000
 
-To learn more about Next.js, take a look at the following resources:
+MONGODB_URI=your_mongodb_connection_string
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+JWT_SECRET=your_jwt_secret_key_here
+JWT_EXPIRES_IN=7d
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+CLIENT_URL=http://localhost:3000
 
-## Deploy on Vercel
+ADMIN_EMAILS=ruhana.atiq@gmail.com
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Variable	Description
+PORT	Port for backend server
+MONGODB_URI	MongoDB Atlas connection string
+JWT_SECRET	Secret used to sign JWT tokens
+JWT_EXPIRES_IN	Token validity duration
+CLIENT_URL	Frontend URL for CORS & cookies
+ADMIN_EMAILS	Comma-separated list of admin emails
+📚 API Documentation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+All backend routes are prefixed with:
+
+/api
+
+🔐 Authentication Routes (/api/auth)
+POST /api/auth/register
+
+Registers a new user.
+
+Body Example:
+
+{
+  "name": "John Doe",
+  "email": "john@gmail.com",
+  "password": "123456"
+}
+
+POST /api/auth/login
+
+Logs in a user and returns a JWT token via cookies.
+
+Body Example:
+
+{
+  "email": "john@gmail.com",
+  "password": "123456"
+}
+
+🎓 Course Routes (/api/courses)
+GET /api/courses
+
+Fetch all available courses.
+
+POST /api/courses (Admin Only)
+
+Create a new course.
+
+Body Example:
+
+{
+  "title": "JavaScript Basics",
+  "description": "Learn JS from scratch",
+  "instructor": "Jane Smith"
+}
+
+PUT /api/courses/:id (Admin Only)
+
+Update an existing course.
+
+DELETE /api/courses/:id (Admin Only)
+
+Delete a course.
+
+📝 Enrollment Routes (/api/enrollments)
+POST /api/enrollments
+
+Enroll a student in a course.
+
+Body Example:
+
+{
+  "courseId": "65abcf12345",
+  "userId": "89acdf67890"
+}
+
+GET /api/enrollments/my-courses
+
+Fetch all courses the logged-in student is enrolled in.
+
+🛠 Admin Routes (/api/admin)
+GET /api/admin/stats
+
+Returns dashboard analytics.
+
+Example Response:
+
+{
+  "totalUsers": 120,
+  "totalCourses": 10,
+  "totalEnrollments": 80,
+  "assignmentSubmissions": 45
+}
+
+🧪 Technologies Used
+Frontend
+
+React.js
+
+React Router
+
+Tailwind CSS
+
+Backend
+
+Node.js
+
+Express.js
+
+Database
+
+MongoDB Atlas
+
+Authentication
+
+JWT + HTTP-only cookies
+
+Deployment
+
+Vercel (Frontend & Backend)
