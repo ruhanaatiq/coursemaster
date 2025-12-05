@@ -38,7 +38,7 @@ MongoDB Atlas account
 npm or yarn
 
 1️⃣ Clone the Repository
-git clone https://github.com/your-username/CourseMaster.git
+git clone [https://github.com/your-username/CourseMaster.git](https://github.com/ruhanaatiq/coursemaster)
 cd CourseMaster
 
 2️⃣ Backend Setup
